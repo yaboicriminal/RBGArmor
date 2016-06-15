@@ -93,7 +93,7 @@ public class RBGArmor extends JavaPlugin implements Listener {
         Player player = e.getPlayer();
         if(!workers.containsKey(player.getUniqueId())) {
             if(player.isOp()) {
-                Worker worker = (Worker) new SyncWorker();
+                Worker worker = (Worker) new SyncWorker(player.getUniqueId());
                 if(worker != null) {
                     initWorker(p, worker);
                     return;
