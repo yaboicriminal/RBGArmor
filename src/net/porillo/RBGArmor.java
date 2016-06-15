@@ -61,12 +61,6 @@ public class RBGArmor extends JavaPlugin implements Listener {
         Bukkit.getScheduler().cancelTasks(this);
     }
 
-    @Override
-    public boolean onCommand(CommandSender s, Command c, String l, String[] a) {
-        handler.runCommand(s, l, a);
-        return true;
-    }
-
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         this.removeUUID(e.getPlayer().getUniqueId());
