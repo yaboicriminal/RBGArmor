@@ -139,8 +139,4 @@ public class RBGArmor extends JavaPlugin implements Listener {
     public Map<UUID, Worker> getWorkers() {
         return this.workerz;
     }
-
-    public Map<UUID, DebugWindow> getDebuggers() {
-        return this.debuggers;
-    }
 }
