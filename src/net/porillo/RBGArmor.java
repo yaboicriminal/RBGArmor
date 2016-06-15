@@ -40,22 +40,14 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class RBGArmor extends JavaPlugin implements Listener {
 
-    private CommandHandler handler;
-    private Map<UUID, DebugWindow> debuggers;
-    private Map<UUID, Worker> workerz;
-    private Map<UUID, Long> sneaks;
+    private Map<UUID, Worker> workers;
     private static Config config;
     public static Color[] rb;
 
     @Override
     public void onEnable() {
-        this.loadLang();
-        handler = new CommandHandler(this);
-        workerz = new HashMap<UUID, Worker>();
-        debuggers = new HashMap<UUID, DebugWindow>();
-        sneaks = new HashMap<UUID, Long>();
-        config = new Config(this);
-        rb = new Color[config.getColors()];
+        workers = new HashMap<UUID, Worker>();
+        rb = new Color[64];
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 
@@ -76,7 +68,7 @@ public class RBGArmor extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        workerz.clear();
+        workers.clear();
         Bukkit.getScheduler().cancelTasks(this);
     }
 
@@ -94,6 +86,22 @@ public class RBGArmor extends JavaPlugin implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         this.removeUUID(e.getEntity().getUniqueId());
+    }
+    
+    
+    // no idea if the code below will work as I am in class
+    @EventHandler
+    public void handleJoin(PlayerJoinEvent e) {
+        Player player = e.getPlayer();
+        if(!workers.containsKey(player.getUniqueId())) {
+            if(player.isOp()) {
+                Worker worker = new SyncWorker();
+                if(worker != null) {
+                    initWorker(p, worker);
+                    return;
+                }
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
