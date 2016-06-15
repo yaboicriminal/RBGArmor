@@ -41,7 +41,6 @@ import org.bukkit.scheduler.BukkitTask;
 public class RBGArmor extends JavaPlugin implements Listener {
 
     private Map<UUID, Worker> workers;
-    private static Config config;
     public static Color[] rb;
 
     @Override
@@ -53,7 +52,7 @@ public class RBGArmor extends JavaPlugin implements Listener {
 
             @Override
             public void run() {
-                final int colors = config.getColors();
+                final int colors = 64;
                 final double f = (6.48 / (double) colors);
                 for (int i = 0; i < colors; ++i) {
                     double r = sin(f * i + 0.0D) * 127.0D + 128.0D;
@@ -61,7 +60,6 @@ public class RBGArmor extends JavaPlugin implements Listener {
                     double b = sin(f * i + (4 * PI / 3)) * 127.0D + 128.0D;
                     rb[i] = Color.fromRGB((int) r, (int) g, (int) b);
                 }
-                debug(config.toString());
             }
         });
     }
@@ -82,7 +80,7 @@ public class RBGArmor extends JavaPlugin implements Listener {
     public void onLeave(PlayerQuitEvent e) {
         this.removeUUID(e.getPlayer().getUniqueId());
     }
-
+    
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         this.removeUUID(e.getEntity().getUniqueId());
@@ -134,93 +132,17 @@ public class RBGArmor extends JavaPlugin implements Listener {
     }
 
     private void initWorker(Player p, Worker rw) {
-        if (config.shouldForcePermsToColorize() && !p.hasPermission(rw.getPermission())) {
-            if (config.isIntegrating()) {
-                send(p, Lang.CANT_USE_URL.replace("%store", config.getStoreLink()));
-            } else {
-                send(p, Lang.CANT_USE_NOURL.toString());
-            }
-            sneaks.put(p.getUniqueId(), System.currentTimeMillis());
-            debug("Denied " + p.getName() + " to use " + rw.getType() + " armor");
-            return;
-        }
-        int rr = config.getRefreshRate();
-        BukkitTask id = Bukkit.getScheduler().runTaskTimer(this, rw, rr, rr);
+        BukkitTask id = Bukkit.getScheduler().runTaskTimer(this, rw, 5, 5);
         rw.setUniqueId(id.getTaskId());
-        workerz.put(p.getUniqueId(), rw);
-        send(p, Lang.ACTIVATE.replace("%mode", rw.getType()));
-        send(p, Lang.DISABLERMD.toString());
-        if (config.shouldDebug()) {
-            debug("New worker for " + p.getName() + ", type: " + rw.getType());
-        }
+        workers.put(p.getUniqueId(), rw);
     }
 
     private void removeUUID(UUID uuid) {
-        if (workerz.containsKey(uuid)) {
-            Worker w = workerz.get(uuid);
+        if (workers.containsKey(uuid)) {
+            Worker w = workers.get(uuid);
             Bukkit.getScheduler().cancelTask(w.getUniqueId());
-            workerz.remove(uuid);
-            if (config.shouldDebug()) {
-                debug("Removed: " + uuid.toString());
-            }
+            workers.remove(uuid);
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    public void loadLang() {
-        File lang = new File(getDataFolder(), "lang.yml");
-        OutputStream out = null;
-        InputStream defLangStream = this.getResource("lang.yml");
-        if (!lang.exists()) {
-            try {
-                getDataFolder().mkdir();
-                lang.createNewFile();
-                if (defLangStream != null) {
-                    out = new FileOutputStream(lang);
-                    int read;
-                    byte[] bytes = new byte[1024];
-                    while ((read = defLangStream.read(bytes)) != -1) {
-                        out.write(bytes, 0, read);
-                    }
-                    YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defLangStream);
-                    Lang.setFile(defConfig);
-                }
-            } catch (IOException e) {
-                getLogger().severe("[RGBArmor] Couldn't create language file.");
-                this.setEnabled(false);
-            } finally {
-                if (defLangStream != null) {
-                    try {
-                        defLangStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        YamlConfiguration conf = YamlConfiguration.loadConfiguration(lang);
-        for (Lang item : Lang.values()) {
-            if (conf.getString(item.getPath()) == null) {
-                conf.set(item.getPath(), item.getDefault());
-            }
-        }
-        Lang.setFile(conf);
-        try {
-            conf.save(lang);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Config getOurConfig() {
-        return config;
     }
 
     public Map<UUID, Worker> getWorkers() {
