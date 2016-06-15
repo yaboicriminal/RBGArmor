@@ -26,9 +26,6 @@ public class SyncWorker extends Worker {
         Color c = getNext();
         for (ItemStack is : inv.getArmorContents()) {
             if (is != null && is.getItemMeta() instanceof LeatherArmorMeta) {
-                if (!Utility.isWorthy(is.getItemMeta())) {
-                    continue;
-                }
                 LeatherArmorMeta lam = (LeatherArmorMeta) is.getItemMeta();
                 lam.setColor(c);
                 is.setItemMeta(lam);
